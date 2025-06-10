@@ -128,6 +128,10 @@ const getGoalForDate = (date) => {
 
 
 const todayGoal = getGoalForDate(selectedDate);
+const proteinGoal = todayGoal?.protein || 0;
+const carbsGoal = todayGoal?.carbs || 0;
+const fatGoal = todayGoal?.fat || 0;
+
 
 
 const saveEditedFood = async (updatedFood) => {
@@ -371,7 +375,10 @@ useEffect(() => {
         logsMap[dateKey] = log;
       });
 
-      setMonthlyLogs(logsMap);
+      setMonthlyLogs((prev) => ({
+  ...prev,
+  ...logsMap, 
+}));
     } catch (err) {
       console.error('Failed to fetch month logs:', err);
     }
@@ -465,7 +472,11 @@ useEffect(() => {
   protein={dailyLog?.totalProtein || 0}
   carbs={dailyLog?.totalCarbs || 0}
   fat={dailyLog?.totalFat || 0}
+  proteinGoal={proteinGoal}
+  carbsGoal={carbsGoal}
+  fatGoal={fatGoal}
 />
+
 
 
 <FoodList

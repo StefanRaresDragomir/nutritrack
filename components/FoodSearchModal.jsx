@@ -25,15 +25,43 @@ const FoodSearchModal = ({ visible, onClose, onCreateFood, onSelectFood, recentF
 
 
   const handleSearch = async (text) => {
-    setSearch(text);
-    if (text.trim().length === 0) {
-      setResults([]);
-      return;
-    }
+  setSearch(text);
 
-    const found = await searchFoods(text);
-    setResults(found);
-  };
+  if (text.trim().length === 0) {
+    setResults([]);
+    return;
+  }
+
+  
+  const localResults = await searchFoods(text);
+  let combinedResults = [...localResults];
+
+  
+  if (localResults.length < 5) {
+    try {
+      const response = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(text)}&search_simple=1&action=process&json=1`);
+      const data = await response.json();
+
+      const externalResults = data.products.map((p) => ({
+        name: p.product_name || 'Unnamed product',
+        calories: Math.round(p.nutriments?.['energy-kcal_100g'] || 0),
+        protein: Math.round(p.nutriments?.['proteins_100g'] || 0),
+        carbs: Math.round(p.nutriments?.['carbohydrates_100g'] || 0),
+        fat: Math.round(p.nutriments?.['fat_100g'] || 0),
+        barcode: p.code,
+        isExternal: true, 
+      }));
+
+      
+      combinedResults = [...localResults, ...externalResults.slice(0, 5)];
+    } catch (err) {
+      console.error('OpenFoodFacts error:', err);
+    }
+  }
+
+  setResults(combinedResults);
+};
+
 
   return (
     <Modal
@@ -105,7 +133,8 @@ const FoodSearchModal = ({ visible, onClose, onCreateFood, onSelectFood, recentF
         backgroundColor: '#C0C0C0',
         padding: 10,
         borderRadius: 8,
-        marginLeft: 8
+        marginLeft: 8,
+        marginTop:-12
       }}
     >
       <Text style={{ color: 'white', fontWeight: '600' }}>Search</Text>
@@ -124,7 +153,11 @@ const FoodSearchModal = ({ visible, onClose, onCreateFood, onSelectFood, recentF
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => onSelectFood(item)} style={styles.item}>
               <Text style={{ fontWeight: '500' }}>{item.name}</Text>
-              <Text style={{ color: '#6b7280' }}>{item.calories} kcal / 100g</Text>
+              <Text style={{ color: '#6b7280' }}>
+                {item.calories} kcal / 100g
+                {item.isExternal && ' (OpenFoodFacts)'}
+              </Text>
+
             </TouchableOpacity>
           )}
         />

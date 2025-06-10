@@ -10,12 +10,18 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "package": "com.zefinitum.nutritrack"
+      "package": "com.zefinitum.nutritrack",
+      "bundleIdentifier": "com.zefinitum.NutriTrack",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.zefinitum.nutritrack",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff",
+        "permissions": ["CAMERA"]
       }
     },
     "web": {

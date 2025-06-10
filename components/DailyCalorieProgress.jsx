@@ -41,12 +41,17 @@ const getProgressColor = (difference) => {
   return `rgb(${r}, ${g}, ${b})`;
 };
 
-const MacroBar = ({ label, value, color }) => {
+const MacroBar = ({ label, value, goal, color = '#000' }) => {
+
   const barWidth = useSharedValue(0);
 
+  
+
   useEffect(() => {
-    barWidth.value = withTiming(Math.min(value, 100), { duration: 600 });
-  }, [value]);
+  const percentage = goal > 0 ? (value / goal) * 100 : 0;
+  barWidth.value = withTiming(Math.min(percentage, 100), { duration: 600 });
+}, [value, goal]);
+
 
   const animatedBarStyle = useAnimatedStyle(() => {
     return { width: `${barWidth.value}%` };
@@ -56,7 +61,10 @@ const MacroBar = ({ label, value, color }) => {
     <View style={{ marginBottom: 10 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <Text style={{ fontWeight: '500' }}>{label}</Text>
-        <Text>{parseFloat(value).toFixed(1)}g</Text>
+        <Text style={{ color: value > goal ? '#dc2626' : 'black' }}>
+  {Math.round(value)} / {Math.round(goal)}g
+</Text>
+
       </View>
       <View
         style={{
@@ -81,11 +89,24 @@ const MacroBar = ({ label, value, color }) => {
   );
 };
 
-const DailyCalorieProgress = ({ total, goal, protein, carbs, fat }) => {
-  const progress = Math.min(total / goal, 1);
+const DailyCalorieProgress = ({
+  total,
+  goal,
+  protein,
+  carbs,
+  fat,
+  proteinGoal = 0,
+  carbsGoal = 0,
+  fatGoal = 0
+}) => {
+
+
   const difference = total - goal;
   const color = getProgressColor(difference);
-  const animatedProgress = useSharedValue(0);
+
+  const progress = goal > 0 ? Math.min(1, total / goal) : 0;
+  const animatedProgress = useSharedValue(progress);
+
 
   useEffect(() => {
     animatedProgress.value = withTiming(progress, { duration: 800 });
@@ -96,10 +117,12 @@ const DailyCalorieProgress = ({ total, goal, protein, carbs, fat }) => {
   }));
 
   const macros = [
-    { label: 'Protein', value: protein, color: '#22c55e' },
-    { label: 'Carbs', value: carbs, color: '#eab308' },
-    { label: 'Fat', value: fat, color: '#ef4444' },
-  ];
+  { label: 'Protein', value: protein, goal: proteinGoal, color: '#22c55e' },
+  { label: 'Carbs', value: carbs, goal: carbsGoal, color: '#eab308' },
+  { label: 'Fat', value: fat, goal: fatGoal, color: '#ef4444' },
+];
+
+
 
   return (
     <View
@@ -169,8 +192,10 @@ const DailyCalorieProgress = ({ total, goal, protein, carbs, fat }) => {
             key={item.label}
             label={item.label}
             value={item.value}
+            goal={item.goal}
             color={item.color}
           />
+
         ))}
       </View>
     </View>
