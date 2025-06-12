@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Platform, StatusBar } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Platform, StatusBar, Image } from 'react-native';
 import CalendarWithDays from '../../components/CalendarWithDays';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useFocusEffect } from '@react-navigation/native';
@@ -117,10 +117,14 @@ useEffect(() => {
 
 const getGoalForDate = (date) => {
   const dateOnly = new Date(date);
-  dateOnly.setHours(23, 59, 59, 999); 
+  dateOnly.setHours(0, 0, 0, 0); 
 
   const matching = [...allGoals]
-    .filter((g) => new Date(g.startDate) <= dateOnly)
+    .filter((g) => {
+  const goalStart = new Date(g.startDate);
+  goalStart.setHours(0, 0, 0, 0);
+  return goalStart <= dateOnly;
+})
     .sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
 
   return matching[0] || null;
@@ -128,6 +132,12 @@ const getGoalForDate = (date) => {
 
 
 const todayGoal = getGoalForDate(selectedDate);
+const isFallbackGoal = !todayGoal || (
+  todayGoal.calories === 2000 &&
+  todayGoal.protein === 0 &&
+  todayGoal.carbs === 0 &&
+  todayGoal.fat === 0
+);
 const proteinGoal = todayGoal?.protein || 0;
 const carbsGoal = todayGoal?.carbs || 0;
 const fatGoal = todayGoal?.fat || 0;
@@ -326,6 +336,8 @@ if (foods.length === 0) {
   }
 };
 
+
+
 useEffect(() => {
   if (!user) return;
 
@@ -457,79 +469,89 @@ useEffect(() => {
       exiting={FadeOut.duration(400)}
       style={{ flex: 1 }}
     >
-    <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
-      <CalendarWithDays
-        selectedDate={selectedDate}
-        onDateChange={setSelectedDate}
-        getDailyKcalDiff={getDailyKcalDiff}
-        headerColor="#C0C0C0"
-         goal={userGoal?.calories || 2000}
+   <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+  <CalendarWithDays
+    selectedDate={selectedDate}
+    onDateChange={setSelectedDate}
+    getDailyKcalDiff={getDailyKcalDiff}
+    headerColor="#C0C0C0"
+    goal={userGoal?.calories || 2000}
+  />
+
+  {isFallbackGoal ? (
+    <View style={{ alignItems: 'center', marginTop: 80 }}>
+      <Image
+        source={require('../../assets/icons/nogoal.png')} 
+        style={{ width: 200, height: 200, marginBottom: 20 }}
+        resizeMode="contain"
+      />
+      <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#666' }}>
+        No objective set for this day!
+      </Text>
+
+    </View>
+  ) : (
+    <>
+      <DailyCalorieProgress
+        total={dailyLog?.totalCalories || 0}
+        goal={todayGoal?.calories || 2000}
+        protein={dailyLog?.totalProtein || 0}
+        carbs={dailyLog?.totalCarbs || 0}
+        fat={dailyLog?.totalFat || 0}
+        proteinGoal={proteinGoal}
+        carbsGoal={carbsGoal}
+        fatGoal={fatGoal}
       />
 
-      <DailyCalorieProgress
-  total={dailyLog?.totalCalories || 0}
-  goal={todayGoal?.calories || 2000}
-  protein={dailyLog?.totalProtein || 0}
-  carbs={dailyLog?.totalCarbs || 0}
-  fat={dailyLog?.totalFat || 0}
-  proteinGoal={proteinGoal}
-  carbsGoal={carbsGoal}
-  fatGoal={fatGoal}
-/>
+      <FoodList
+        foods={dailyLog?.foods ? JSON.parse(dailyLog.foods) : []}
+        onDelete={handleDeleteFood}
+        onEdit={handleEditFood}
+      />
 
+      <FoodSearchModal
+        visible={showFoodModal}
+        onClose={() => setShowFoodModal(false)}
+        onCreateFood={handleCreateFood}
+        onSelectFood={handleSelectFood}
+        recentFoods={[]}
+      />
 
+      <CreateFoodModal
+        visible={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSave={async (newFood) => {
+          try {
+            const saved = await createFood(newFood);
+            console.log('Saved successfully: ', saved);
+          } catch (err) {
+            console.error('Saving error: ', err);
+          }
+        }}
+      />
 
-<FoodList
-  foods={dailyLog?.foods ? JSON.parse(dailyLog.foods) : []}
-  onDelete={handleDeleteFood}
-  onEdit={handleEditFood}
-/>
+      <AddFoodToDayModal
+        visible={showGramModal}
+        onClose={() => setShowGramModal(false)}
+        food={selectedFood}
+        onAdd={handleAddToDay}
+      />
 
-
-
-
-
-<FoodSearchModal
-  visible={showFoodModal}
-  onClose={() => setShowFoodModal(false)}
-  onCreateFood={handleCreateFood}
-  onSelectFood={handleSelectFood}
-  recentFoods={[]} // de completat ulterior
-/>
-
-<CreateFoodModal
-  visible={showCreateModal}
-  onClose={() => setShowCreateModal(false)}
-  onSave={async (newFood) => {
-  try {
-    const saved = await createFood(newFood);
-    console.log('Saved successfully: ', saved);
-    // Optional: update lista de alimente recente
-  } catch (err) {
-    console.error('Saving error: ', err);
-  }
-}}
-
-/>
-
-<AddFoodToDayModal
-  visible={showGramModal}
-  onClose={() => setShowGramModal(false)}
-  food={selectedFood}
-  onAdd={handleAddToDay}
-/>
-
-<EditFoodModal
-  visible={editModalVisible}
-  onClose={() => setEditModalVisible(false)}
-  food={selectedFood}
-  onSave={saveEditedFood}
-/>
-
-
+      <EditFoodModal
+        visible={editModalVisible}
+        onClose={() => setEditModalVisible(false)}
+        food={selectedFood}
+        onSave={saveEditedFood}
+      />
+    </>
+  )}
 </ScrollView>
 
-<FAB onPress={() => setShowFoodModal(true)} />
+
+{!isFallbackGoal && (
+  <FAB onPress={() => setShowFoodModal(true)} />
+)}
+
 
 
     </Animated.View>

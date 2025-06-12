@@ -52,6 +52,7 @@ const AddFoodToDayModal = ({ visible, onClose, food, onAdd }) => {
 
         <TextInput
           placeholder="g (ex: 100)"
+          placeholderTextColor="#C0C0C0"
           value={grams}
           onChangeText={setGrams}
           keyboardType="numeric"
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 10,
     padding: 10,
-    marginBottom: 10,
+    marginBottom: 10
   },
   preview: {
     marginBottom: 10,

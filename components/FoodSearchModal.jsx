@@ -24,43 +24,58 @@ const FoodSearchModal = ({ visible, onClose, onCreateFood, onSelectFood, recentF
 
 
 
-  const handleSearch = async (text) => {
+ const handleSearch = async (text) => {
   setSearch(text);
 
-  if (text.trim().length === 0) {
+  if (!text.trim()) {
     setResults([]);
     return;
   }
 
-  
-  const localResults = await searchFoods(text);
-  let combinedResults = [...localResults];
+  try {
+    const localResults = await searchFoods(text);
+    const normalizedLocal = localResults.map((f) => ({
+      ...f,
+      isExternal: false,
+    }));
 
-  
-  if (localResults.length < 5) {
-    try {
-      const response = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(text)}&search_simple=1&action=process&json=1`);
-      const data = await response.json();
+    
+    setResults(normalizedLocal);
 
-      const externalResults = data.products.map((p) => ({
-        name: p.product_name || 'Unnamed product',
-        calories: Math.round(p.nutriments?.['energy-kcal_100g'] || 0),
-        protein: Math.round(p.nutriments?.['proteins_100g'] || 0),
-        carbs: Math.round(p.nutriments?.['carbohydrates_100g'] || 0),
-        fat: Math.round(p.nutriments?.['fat_100g'] || 0),
-        barcode: p.code,
-        isExternal: true, 
-      }));
+    
+    fetch(
+      `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(text)}&search_simple=1&action=process&json=1`,
+      {
+        headers: {
+          'User-Agent': 'NutriTrackApp/1.0 (React Native)',
+        },
+      }
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        const external = (data.products || []).map((p) => ({
+          name: p.product_name || 'Unnamed product',
+          calories: Math.round(p.nutriments?.['energy-kcal_100g'] || 0),
+          protein: Math.round(p.nutriments?.['proteins_100g'] || 0),
+          carbs: Math.round(p.nutriments?.['carbohydrates_100g'] || 0),
+          fat: Math.round(p.nutriments?.['fat_100g'] || 0),
+          barcode: p.code,
+          isExternal: true,
+        }));
 
-      
-      combinedResults = [...localResults, ...externalResults.slice(0, 5)];
-    } catch (err) {
-      console.error('OpenFoodFacts error:', err);
-    }
+        
+        setResults((prev) => [...prev, ...external.slice(0, 5)]);
+      })
+      .catch((e) => {
+        console.log('[OFF fallback failed]', e.message);
+      });
+  } catch (e) {
+    console.error('Appwrite search failed:', e);
+    setResults([]);
   }
-
-  setResults(combinedResults);
 };
+
+
 
 
   return (
@@ -75,12 +90,27 @@ const FoodSearchModal = ({ visible, onClose, onCreateFood, onSelectFood, recentF
     >
       <View style={styles.container}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+  <View style={{ position: 'relative', flex: 1 }}>
   <TextInput
-    placeholder="Search food..."
     value={search}
     onChangeText={handleSearch}
-    style={[styles.input, { flex: 1 }]}
+    style={[styles.input, { paddingLeft: 40 }]} 
   />
+  {search.length === 0 && (
+    <Image
+      source={require('../assets/icons/search.png')} 
+      style={{
+        position: 'absolute',
+        top: 10,
+        left: 10,
+        width: 20,
+        height: 20,
+        tintColor: '#C0C0C0',
+      }}
+    />
+  )}
+</View>
+
   <TouchableOpacity
   onPress={() => setShowBarcodeInput(!showBarcodeInput)}
   style={{ marginLeft: 8, marginTop: -12 }}
@@ -106,29 +136,47 @@ const FoodSearchModal = ({ visible, onClose, onCreateFood, onSelectFood, recentF
     />
     <TouchableOpacity
       onPress={async () => {
-        if (!barcode) return;
-        try {
-          const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
-          const data = await res.json();
-          if (data?.status === 1) {
-            const p = data.product;
-            const food = {
-              name: p.product_name || 'Unnamed product',
-              calories: Math.round(p.nutriments?.['energy-kcal_100g'] || 0),
-              protein: Math.round(p.nutriments?.['proteins_100g'] || 0),
-              carbs: Math.round(p.nutriments?.['carbohydrates_100g'] || 0),
-              fat: Math.round(p.nutriments?.['fat_100g'] || 0),
-              barcode: barcode
-            };
-            onSelectFood(food);
-          } else {
-            alert('Product not found. Try another barcode.');
-          }
-        } catch (e) {
-          alert('Error while fetching product.');
-          console.error(e);
-        }
-      }}
+  if (!barcode) return;
+
+  try {
+    const res = await fetch(
+      `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`,
+      {
+        headers: {
+          'User-Agent': 'NutriTrackApp/1.0 (React Native)', 
+        },
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! Status: ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    if (data?.status === 1) {
+      const p = data.product;
+      const food = {
+        name: p.product_name || 'Unnamed product',
+        calories: Math.round(p.nutriments?.['energy-kcal_100g'] || 0),
+        protein: Math.round(p.nutriments?.['proteins_100g'] || 0),
+        carbs: Math.round(p.nutriments?.['carbohydrates_100g'] || 0),
+        fat: Math.round(p.nutriments?.['fat_100g'] || 0),
+        barcode: p.code,
+        isExternal: true,
+      };
+
+      onSelectFood(food);
+    } else {
+      alert('Product not found in OpenFoodFacts. Try another barcode.');
+    }
+  } catch (e) {
+    alert('Error while fetching product from OpenFoodFacts.');
+    console.error('Fetch error (barcode):', e);
+  }
+}}
+
+
       style={{
         backgroundColor: '#C0C0C0',
         padding: 10,
@@ -148,15 +196,16 @@ const FoodSearchModal = ({ visible, onClose, onCreateFood, onSelectFood, recentF
         </TouchableOpacity>
 
         <FlatList
-          data={search ? results : recentFoods}
+          data={results.length > 0 ? results : recentFoods}
           keyExtractor={(item, index) => item.$id || `${item.name}-${index}`}
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => onSelectFood(item)} style={styles.item}>
               <Text style={{ fontWeight: '500' }}>{item.name}</Text>
               <Text style={{ color: '#6b7280' }}>
-                {item.calories} kcal / 100g
+                {(item.calories ?? 0)} kcal / 100g
                 {item.isExternal && ' (OpenFoodFacts)'}
               </Text>
+
 
             </TouchableOpacity>
           )}

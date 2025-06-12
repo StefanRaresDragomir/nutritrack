@@ -15,6 +15,7 @@ import fsymbol from "../assets/icons/fsymbol.png";
 import msymbol from "../assets/icons/msymbol.png";
 import calendar from "../assets/icons/calendar.png";
 import barcode from "../assets/icons/barcode.png";
+import nogoal from "../assets/icons/nogoal.png";
 
 export default {
   play,
@@ -33,5 +34,6 @@ export default {
   fsymbol,
   msymbol,
   calendar,
-  barcode
+  barcode,
+  nogoal
 };
