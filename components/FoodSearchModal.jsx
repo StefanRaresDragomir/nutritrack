@@ -39,36 +39,7 @@ const FoodSearchModal = ({ visible, onClose, onCreateFood, onSelectFood, recentF
       isExternal: false,
     }));
 
-    
     setResults(normalizedLocal);
-
-    
-    fetch(
-      `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(text)}&search_simple=1&action=process&json=1`,
-      {
-        headers: {
-          'User-Agent': 'NutriTrackApp/1.0 (React Native)',
-        },
-      }
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        const external = (data.products || []).map((p) => ({
-          name: p.product_name || 'Unnamed product',
-          calories: Math.round(p.nutriments?.['energy-kcal_100g'] || 0),
-          protein: Math.round(p.nutriments?.['proteins_100g'] || 0),
-          carbs: Math.round(p.nutriments?.['carbohydrates_100g'] || 0),
-          fat: Math.round(p.nutriments?.['fat_100g'] || 0),
-          barcode: p.code,
-          isExternal: true,
-        }));
-
-        
-        setResults((prev) => [...prev, ...external.slice(0, 5)]);
-      })
-      .catch((e) => {
-        console.log('[OFF fallback failed]', e.message);
-      });
   } catch (e) {
     console.error('Appwrite search failed:', e);
     setResults([]);
@@ -141,6 +112,7 @@ const FoodSearchModal = ({ visible, onClose, onCreateFood, onSelectFood, recentF
   try {
     const res = await fetch(
       `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`,
+
       {
         headers: {
           'User-Agent': 'NutriTrackApp/1.0 (React Native)', 

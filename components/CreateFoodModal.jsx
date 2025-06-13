@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import Modal from 'react-native-modal';
 
 const CreateFoodModal = ({ visible, onClose, onSave }) => {
@@ -8,6 +8,7 @@ const CreateFoodModal = ({ visible, onClose, onSave }) => {
   const [protein, setProtein] = useState('');
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
+  
 
   const handleSave = () => {
     if (!name || !calories || !protein || !carbs || !fat) {
@@ -23,15 +24,19 @@ const CreateFoodModal = ({ visible, onClose, onSave }) => {
       fat: Number(fat),
     };
 
+    
     onSave(newFood);
     onClose();
+
     setName('');
     setCalories('');
     setProtein('');
     setCarbs('');
     setFat('');
+   
   };
 
+  
   return (
     <Modal
       isVisible={visible}
@@ -44,15 +49,54 @@ const CreateFoodModal = ({ visible, onClose, onSave }) => {
       <View style={styles.container}>
         <Text style={styles.title}>Create food</Text>
 
-        <TextInput placeholder="Name" value={name} onChangeText={setName} style={styles.input} />
-        <TextInput placeholder="kCal / 100g" value={calories} onChangeText={setCalories} keyboardType="numeric" style={styles.input} />
-        <TextInput placeholder="Protein" value={protein} onChangeText={setProtein} keyboardType="numeric" style={styles.input} />
-        <TextInput placeholder="Carbs" value={carbs} onChangeText={setCarbs} keyboardType="numeric" style={styles.input} />
-        <TextInput placeholder="Fat" value={fat} onChangeText={setFat} keyboardType="numeric" style={styles.input} />
+        <TextInput
+          placeholder="Name"
+          placeholderTextColor="#C0C0C0"
+          value={name}
+          onChangeText={setName}
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="kCal / 100g"
+          placeholderTextColor="#C0C0C0"
+          value={calories}
+          onChangeText={setCalories}
+          keyboardType="numeric"
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Protein"
+          placeholderTextColor="#C0C0C0"
+          value={protein}
+          onChangeText={setProtein}
+          keyboardType="numeric"
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Carbs"
+          placeholderTextColor="#C0C0C0"
+          value={carbs}
+          onChangeText={setCarbs}
+          keyboardType="numeric"
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Fat"
+          placeholderTextColor="#C0C0C0"
+          value={fat}
+          onChangeText={setFat}
+          keyboardType="numeric"
+          style={styles.input}
+        />
+       
+        <TouchableOpacity onPress={handleSave} style={styles.imageButton}>
+        <Image
+          source={require('../assets/icons/upload.png')} 
+          style={styles.saveImage}
+          resizeMode="contain"
+        />
+</TouchableOpacity>
 
-        <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
-          <Text style={{ color: 'white', fontWeight: 'bold' }}>Save</Text>
-        </TouchableOpacity>
       </View>
     </Modal>
   );
@@ -76,6 +120,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     marginBottom: 10,
+    color: 'black', 
   },
   saveButton: {
     backgroundColor: '#C0C0C0',
@@ -84,6 +129,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
   },
+  imageButton: {
+  alignItems: 'center',
+  marginTop: 10,
+  },
+  saveImage: {
+  width: 100, 
+  height: 40,
+  },
+
 });
 
 export default CreateFoodModal;

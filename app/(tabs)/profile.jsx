@@ -48,7 +48,8 @@ const Profile = () => {
 
   const [showStatsModal, setShowStatsModal] = useState(false);
 
-  const { setUserGoal, setRefreshGoals } = useGlobalContext();
+  const { setUserGoal, setRefreshGoals, setRefreshLogs } = useGlobalContext();
+
 
 
 const [showAnimated, setShowAnimated] = useState(false);
@@ -329,6 +330,8 @@ const [statsForm, setStatsForm] = useState({
     });
 
     setRefreshGoals(prev => !prev);
+    setRefreshLogs(prev => !prev);
+
 
     Alert.alert('Success', 'Goal saved successfully!');
     setShowGoalModal(false);

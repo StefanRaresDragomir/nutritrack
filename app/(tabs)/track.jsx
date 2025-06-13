@@ -23,7 +23,9 @@ import {
   isSameDay,
   subDays,
   addDays,
-  format
+  format,
+  endOfMonth,
+  startOfMonth
 } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -37,7 +39,7 @@ const Track = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const [dailyLog, setDailyLog] = useState(null);
-  const { user, userGoal, setUserGoal, refreshGoals } = useGlobalContext();
+  const { user, userGoal, setUserGoal, refreshGoals, refreshLogs, setRefreshLogs } = useGlobalContext();
 
 
 
@@ -91,44 +93,47 @@ const getLabelForDate = (date) => {
   return format(date, 'd MMMM yyyy', { locale: ro });
 };
 
-useEffect(() => {
-  if (!user) return;
+useFocusEffect(
+  useCallback(() => {
+    if (!user) return;
 
-  const fetchAllGoals = async () => {
-    try {
-      const res = await databases.listDocuments(
-        config.databaseId,
-        config.goalsCollectionId,
-        [Query.equal('userId', user.$id)]
-      );
+    const fetchAllGoals = async () => {
+      try {
+        const res = await databases.listDocuments(
+          config.databaseId,
+          config.goalsCollectionId,
+          [Query.equal('userId', user.$id)]
+        );
 
-      const sorted = res.documents.sort(
-        (a, b) => new Date(b.startDate) - new Date(a.startDate)
-      );
+        const sorted = res.documents.sort(
+          (a, b) => new Date(b.startDate) - new Date(a.startDate)
+        );
 
-      setAllGoals(sorted);
-    } catch (err) {
-      console.error('Failed to fetch goals:', err);
-    }
-  };
+        setAllGoals(sorted);
+      } catch (err) {
+        console.error('Failed to fetch goals:', err);
+      }
+    };
 
-  fetchAllGoals();
-}, [user, refreshGoals]);
+    fetchAllGoals();
+  }, [user])
+);
 
 const getGoalForDate = (date) => {
   const dateOnly = new Date(date);
-  dateOnly.setHours(0, 0, 0, 0); 
+  dateOnly.setHours(0, 0, 0, 0);
 
   const matching = [...allGoals]
     .filter((g) => {
-  const goalStart = new Date(g.startDate);
-  goalStart.setHours(0, 0, 0, 0);
-  return goalStart <= dateOnly;
-})
+      const goalStart = new Date(g.startDate);
+      goalStart.setHours(0, 0, 0, 0);
+      return goalStart <= dateOnly;
+    })
     .sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
 
   return matching[0] || null;
 };
+
 
 
 const todayGoal = getGoalForDate(selectedDate);
@@ -365,9 +370,9 @@ useEffect(() => {
 useEffect(() => {
   if (!user || !selectedDate) return;
 
-  const startOfMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
-  const endOfMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
-  endOfMonth.setHours(23, 59, 59, 999);
+  const startOfMonthDate = startOfMonth(selectedDate);
+  const endOfMonthDate = endOfMonth(selectedDate);
+  endOfMonthDate.setHours(23, 59, 59, 999);
 
   const fetchMonthLogs = async () => {
     try {
@@ -376,28 +381,52 @@ useEffect(() => {
         config.dailyLogsCollectionId,
         [
           Query.equal('userId', user.$id),
-          Query.greaterThanEqual('date', startOfMonth.toISOString()),
-          Query.lessThanEqual('date', endOfMonth.toISOString())
+          Query.greaterThanEqual('date', startOfMonthDate.toISOString()),
+          Query.lessThanEqual('date', endOfMonthDate.toISOString())
         ]
       );
 
+      const existingLogs = res.documents;
       const logsMap = {};
-      res.documents.forEach(log => {
-        const dateKey = new Date(log.date).toDateString();
-        logsMap[dateKey] = log;
+
+      const monthDays = [];
+      for (let d = new Date(startOfMonthDate); d <= endOfMonthDate; d = addDays(d, 1)) {
+        monthDays.push(new Date(d));
+      }
+
+      monthDays.forEach((day) => {
+        const dateKey = day.toDateString();
+
+        const log = existingLogs.find((l) => isSameDay(new Date(l.date), day));
+        if (log) {
+          logsMap[dateKey] = log;
+        } else {
+          const goal = getGoalForDate(day);
+          if (goal) {
+            logsMap[dateKey] = {
+              date: day.toISOString(),
+              totalCalories: 0,
+              totalProtein: 0,
+              totalCarbs: 0,
+              totalFat: 0,
+              foods: JSON.stringify([]),
+              isVirtual: true, 
+            };
+          }
+        }
       });
 
       setMonthlyLogs((prev) => ({
-  ...prev,
-  ...logsMap, 
-}));
+        ...prev,
+        ...logsMap,
+      }));
     } catch (err) {
       console.error('Failed to fetch month logs:', err);
     }
   };
 
   fetchMonthLogs();
-}, [user, selectedDate]);
+}, [user, selectedDate, refreshLogs]);
 
 
 
