@@ -10,7 +10,11 @@ const AddFoodToDayModal = ({ visible, onClose, food, onAdd }) => {
   const parsedGrams = parseFloat(grams);
   const isValid = !isNaN(parsedGrams) && parsedGrams > 0;
 
-  const scale = (value) => ((value / 100) * parsedGrams).toFixed(1);
+  const scale = (value) => {
+  if (!isValid || typeof value !== 'number' || isNaN(value)) return 0;
+  return ((value / 100) * parsedGrams).toFixed(1);
+};
+
 
   const handleAdd = () => {
     if (!isValid) {

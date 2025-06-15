@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   TextInput,
@@ -24,9 +24,20 @@ const FoodSearchModal = ({ visible, onClose, onCreateFood, onSelectFood, recentF
 
 
 
- const handleSearch = async (text) => {
+ const searchTimeout = useRef(null);
+
+const handleSearch = useCallback((text) => {
   setSearch(text);
 
+  if (searchTimeout.current) clearTimeout(searchTimeout.current);
+
+  searchTimeout.current = setTimeout(() => {
+    performSearch(text);
+  }, 300); 
+}, []);
+
+
+const performSearch = async (text) => {
   if (!text.trim()) {
     setResults([]);
     return;
@@ -35,42 +46,43 @@ const FoodSearchModal = ({ visible, onClose, onCreateFood, onSelectFood, recentF
   try {
     const localResults = await searchFoods(text);
     const normalizedLocal = localResults.map((f) => ({
-      ...f,
+      name: f.name || 'Unnamed product',
+      calories: Number(f.calories) || 0,
+      protein: Number(f.protein) || 0,
+      carbs: Number(f.carbs) || 0,
+      fat: Number(f.fat) || 0,
+      barcode: f.barcode || null,
       isExternal: false,
     }));
 
-    
-    setResults(normalizedLocal);
+    if (normalizedLocal.length > 0) {
+      setResults(normalizedLocal);
+      return;
+    }
 
-    
-    fetch(
+    const offRes = await fetch(
       `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(text)}&search_simple=1&action=process&json=1`,
       {
         headers: {
           'User-Agent': 'NutriTrackApp/1.0 (React Native)',
         },
       }
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        const external = (data.products || []).map((p) => ({
-          name: p.product_name || 'Unnamed product',
-          calories: Math.round(p.nutriments?.['energy-kcal_100g'] || 0),
-          protein: Math.round(p.nutriments?.['proteins_100g'] || 0),
-          carbs: Math.round(p.nutriments?.['carbohydrates_100g'] || 0),
-          fat: Math.round(p.nutriments?.['fat_100g'] || 0),
-          barcode: p.code,
-          isExternal: true,
-        }));
+    );
+    const data = await offRes.json();
+    const external = (data.products || []).map((p) => ({
+      name: p.product_name || 'Unnamed product',
+      calories: Math.round(p.nutriments?.['energy-kcal_100g'] || 0),
+      protein: Math.round(p.nutriments?.['proteins_100g'] || 0),
+      carbs: Math.round(p.nutriments?.['carbohydrates_100g'] || 0),
+      fat: Math.round(p.nutriments?.['fat_100g'] || 0),
+      barcode: p.code,
+      isExternal: true,
+      source: 'OpenFoodFacts',
+    }));
 
-        
-        setResults((prev) => [...prev, ...external.slice(0, 5)]);
-      })
-      .catch((e) => {
-        console.log('[OFF fallback failed]', e.message);
-      });
+    setResults(external.slice(0, 5));
   } catch (e) {
-    console.error('Appwrite search failed:', e);
+    console.error('Search error:', e);
     setResults([]);
   }
 };
@@ -203,7 +215,8 @@ const FoodSearchModal = ({ visible, onClose, onCreateFood, onSelectFood, recentF
               <Text style={{ fontWeight: '500' }}>{item.name}</Text>
               <Text style={{ color: '#6b7280' }}>
                 {(item.calories ?? 0)} kcal / 100g
-                {item.isExternal && ' (OpenFoodFacts)'}
+                {item.isExternal && ` (${item.source || 'External'})`}
+
               </Text>
 
 

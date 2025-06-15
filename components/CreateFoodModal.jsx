@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import Modal from 'react-native-modal';
 
 const CreateFoodModal = ({ visible, onClose, onSave }) => {
@@ -50,9 +50,13 @@ const CreateFoodModal = ({ visible, onClose, onSave }) => {
         <TextInput placeholder="Carbs" value={carbs} onChangeText={setCarbs} keyboardType="numeric" style={styles.input} />
         <TextInput placeholder="Fat" value={fat} onChangeText={setFat} keyboardType="numeric" style={styles.input} />
 
-        <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
-          <Text style={{ color: 'white', fontWeight: 'bold' }}>Save</Text>
-        </TouchableOpacity>
+        <TouchableOpacity onPress={handleSave} style={styles.imageButton}>
+          <Image
+            source={require('../assets/icons/upload.png')} 
+            style={styles.saveImage}
+            resizeMode="contain"
+          />
+</TouchableOpacity>
       </View>
     </Modal>
   );
@@ -84,6 +88,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
   },
+  imageButton: {
+  alignItems: 'center',
+  marginTop: 10,
+  },
+  saveImage: {
+  width: 100, 
+  height: 40,
+  },
+
 });
 
 export default CreateFoodModal;
