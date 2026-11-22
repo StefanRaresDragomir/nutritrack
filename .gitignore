@@ -2,6 +2,7 @@
 
 # dependencies
 node_modules/
+backend/node_modules/
 
 # Expo
 .expo/
@@ -25,12 +26,23 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 
-# macOS
+# macOS & OS
 .DS_Store
 *.pem
+Thumbs.db
 
-# local env files
+# local env files (Secrets Protection)
 .env*.local
+backend/.env
+*.backup.js
+
+# Database & User Uploads (Privacy & Data Protection)
+backend/data/*.db
+backend/data/*.db-shm
+backend/data/*.db-wal
+backend/uploads/*
+!backend/uploads/.gitkeep
+!backend/data/.gitkeep
 
 # typescript
 *.tsbuildinfo

@@ -9,7 +9,7 @@ import {
   Button
 } from 'react-native';
 import Modal from 'react-native-modal';
-import { searchFoods } from '../lib/appwrite';
+import { searchFoods } from '../lib/api';
 import { Image } from 'react-native';
 
 

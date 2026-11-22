@@ -6,11 +6,8 @@ import {images} from '../../constants';
 import { useState } from 'react';
 import  CustomButton from '../../components/CustomButton'
 import { Link, router } from 'expo-router';
-import { signIn } from '../../lib/appwrite';
 import { useGlobalContext } from '../../context/GlobalProvider';
-import { databases, config } from '../../lib/appwrite';
-import { Query } from 'react-native-appwrite';
-import { getCurrentUser } from '../../lib/appwrite';
+import { signIn, getCurrentUser, databases, config, Query } from '../../lib/api';
 
 
 const SignIn = () => {

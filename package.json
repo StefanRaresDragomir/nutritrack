@@ -4,6 +4,8 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
+    "backend": "node backend/server.js",
+    "test:backend": "node -e \"require('./backend/server'); setTimeout(async () => { const runTests = require('./backend/test-backend'); await runTests(); process.exit(0); }, 1000);\"",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -16,6 +18,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
+    "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native-picker/picker": "2.11.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",

@@ -4,8 +4,7 @@ import CalendarWithDays from '../../components/CalendarWithDays';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useFocusEffect } from '@react-navigation/native';
 import DailyCalorieProgress from '../../components/DailyCalorieProgress';
-import { databases, config } from '../../lib/appwrite';
-import { Query } from 'react-native-appwrite';
+import { databases, config, Query, ID, createFood } from '../../lib/api';
 import { useGlobalContext } from '../../context/GlobalProvider';
 import { ScrollView } from 'react-native';
 import FoodList from '../../components/FoodList';
@@ -14,8 +13,6 @@ import FoodSearchModal from '../../components/FoodSearchModal';
 import CreateFoodModal from '../../components/CreateFoodModal';
 import AddFoodToDayModal from '../../components/AddFoodToDayModal';
 import EditFoodModal from '../../components/EditFoodModal';
-import { createFood } from '../../lib/appwrite'; 
-import { ID } from 'react-native-appwrite';
 import {
   isToday,
   isYesterday,

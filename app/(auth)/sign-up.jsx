@@ -3,12 +3,9 @@ import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormField from '../../components/FormField';
 import { Link, router, useRouter } from 'expo-router';
-import { createUser } from '../../lib/appwrite';
 import CustomButton from '../../components/CustomButton';
 import { useGlobalContext } from '../../context/GlobalProvider';
-import { databases, config } from '../../lib/appwrite';
-import { Query } from 'react-native-appwrite';
-import { getCurrentUser } from '../../lib/appwrite';
+import { createUser, getCurrentUser, databases, config, Query } from '../../lib/api';
 
 
 

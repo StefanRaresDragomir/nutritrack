@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { View, Image, Text, Pressable, Alert, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { storage, avatars, config, account } from '../lib/appwrite';
-import { ID } from 'appwrite';
+import { storage, avatars, config, account, ID } from '../lib/api';
 
 const MAX_FILE_SIZE_MB = 2;
 
