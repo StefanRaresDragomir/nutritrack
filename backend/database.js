@@ -1,5 +1,4 @@
 const path = require('path');
-const Database = require('better-sqlite3');
 const fs = require('fs');
 
 // Ensure data directory exists
@@ -9,11 +8,21 @@ if (!fs.existsSync(dataDir)) {
 }
 
 const dbPath = path.join(dataDir, 'nutritrack.db');
-const db = new Database(dbPath);
 
-// Enable WAL mode for better concurrent performance
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+let db;
+try {
+  // Built-in SQLite available in Node.js v22.5+ (no native C++ compilation required)
+  const { DatabaseSync } = require('node:sqlite');
+  db = new DatabaseSync(dbPath);
+  db.exec('PRAGMA journal_mode = WAL;');
+  db.exec('PRAGMA foreign_keys = ON;');
+} catch (e) {
+  // Fallback to better-sqlite3 if on an older Node version
+  const Database = require('better-sqlite3');
+  db = new Database(dbPath);
+  db.pragma('journal_mode = WAL');
+  db.pragma('foreign_keys = ON');
+}
 
 // Create tables if they don't exist
 db.exec(`
