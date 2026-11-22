@@ -77,14 +77,21 @@ app.use((err, req, res, next) => {
 // Helper to determine LAN IP for mobile Expo Go connection
 function getLocalNetworkIp() {
   const interfaces = os.networkInterfaces();
+  const candidates = [];
   for (const name of Object.keys(interfaces)) {
+    // Ignore virtual / loopback / container network adapters
+    if (/virtual|vbox|vmware|wsl/i.test(name)) continue;
     for (const iface of interfaces[name]) {
       if (iface.family === 'IPv4' && !iface.internal) {
-        return iface.address;
+        // Exclude VirtualBox default host-only subnet (192.168.56.x) and link-local (169.254.x)
+        if (iface.address.startsWith('192.168.56.') || iface.address.startsWith('169.254.')) {
+          continue;
+        }
+        candidates.push(iface.address);
       }
     }
   }
-  return 'localhost';
+  return candidates[0] || '192.168.1.154';
 }
 
 const localIp = getLocalNetworkIp();

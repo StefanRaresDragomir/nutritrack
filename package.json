@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
+    "start:tunnel": "expo start --tunnel",
     "backend": "node backend/server.js",
     "test:backend": "node -e \"require('./backend/server'); setTimeout(async () => { const runTests = require('./backend/test-backend'); await runTests(); process.exit(0); }, 1000);\"",
     "reset-project": "node ./scripts/reset-project.js",
