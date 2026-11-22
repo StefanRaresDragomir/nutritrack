@@ -19,7 +19,7 @@
     "android": {
       "package": "com.zefinitum.nutritrack",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/nutritrack.png",
         "backgroundColor": "#ffffff",
         "permissions": ["CAMERA"]
       }
@@ -27,14 +27,14 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/nutritrack.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/nutritrack.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -46,10 +46,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "90a4e5a1-ddae-4071-a118-4a4e674f6222"
-      }
+      "router": {}
     }
   }
 }
