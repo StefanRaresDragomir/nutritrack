@@ -4,7 +4,7 @@ import { config, account, databases, avatars, storage, Query, ID, Permission, Ro
 import AvatarUpload from '../../components/AvatarUpload';
 import CustomButton from '../../components/CustomButton';
 import FormField from '../../components/FormField';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import Animated, { FadeInUp, FadeInDown, FadeOutDown, ZoomIn, FadeOut, FadeIn } from 'react-native-reanimated';
 import { icons } from '../../constants';
 import { Image } from 'react-native';
@@ -12,7 +12,6 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native';
 import { Platform, StatusBar } from 'react-native';
 import CustomMacroGoalForm from '../../components/CustomMacroGoalForm';
-import { useFocusEffect } from '@react-navigation/native';
 import { useGlobalContext } from '../../context/GlobalProvider';
 
 

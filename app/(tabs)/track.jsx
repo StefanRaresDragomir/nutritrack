@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Platform, StatusBar, Image } from 'react-native';
 import CalendarWithDays from '../../components/CalendarWithDays';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import DailyCalorieProgress from '../../components/DailyCalorieProgress';
 import { databases, config, Query, ID, createFood } from '../../lib/api';
 import { useGlobalContext } from '../../context/GlobalProvider';
